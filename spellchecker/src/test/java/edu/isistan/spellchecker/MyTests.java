@@ -22,4 +22,15 @@ public class MyTests {
             in.close();
         }
     }
+
+    @Test public void skipComma() throws Exception {
+        Reader in = new StringReader("D");
+        TokenScanner d = new TokenScanner(in);
+        try {
+            assertTrue("has next", d.hasNext());
+            assertFalse(d.isWordCharacter(','));
+        } finally {
+            in.close();
+        }
+    }
 }

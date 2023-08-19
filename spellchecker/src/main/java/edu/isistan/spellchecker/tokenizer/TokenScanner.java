@@ -50,7 +50,7 @@ public class TokenScanner implements Iterator<String> {
           wordBuilder.append((char) c);
         }
       }
-      else if (Character.isWhitespace(c)) {
+      else if (!isWordCharacter(c)) {
         if (wordBuilder.length()>0){
           nextToken=wordBuilder.toString();
           wordBuilder.setLength(0);

@@ -1,16 +1,21 @@
 package edu.isistan.spellchecker.corrector.impl;
 
+import java.util.Hashtable;
 import java.util.Set;
 
 import edu.isistan.spellchecker.corrector.Corrector;
+import edu.isistan.spellchecker.tokenizer.TokenScanner;
 
 import java.io.*;
+import java.util.TreeSet;
 
 /**
  * Corrector basado en un archivo.
  * 
  */
 public class FileCorrector extends Corrector {
+
+	private Hashtable<String,String> correctionMap = new Hashtable<String,String>();
 
 	/** Clase especial que se utiliza al tener 
 	 * algún error de formato en el archivo de entrada.
@@ -78,8 +83,17 @@ public class FileCorrector extends Corrector {
 	 * @throws IllegalArgumentException reader es null
 	 */
 	public FileCorrector(Reader r) throws IOException, FormatException {
+		if (r == null)
+			throw new IllegalArgumentException();
+		else {
+			TokenScanner token = new TokenScanner(r);
+			while (token.hasNext()){
+				System.out.println(token.next());
+				correctionMap.put(token.next(),token.next());
+				}
+			}
+		}
 
-	}
 
 	/** Construye el Filereader.
 	 *
@@ -110,6 +124,11 @@ public class FileCorrector extends Corrector {
 	 * @throws IllegalArgumentException si la entrada no es una palabra válida 
 	 */
 	public Set<String> getCorrections(String wrong) {
-		return null;
+		Set<String> corrections = new TreeSet<String>();
+		if (wrong != null){
+			corrections.add(correctionMap.get(wrong));
+			return corrections;
+		}
+		throw new IllegalArgumentException();
 	}
 }
