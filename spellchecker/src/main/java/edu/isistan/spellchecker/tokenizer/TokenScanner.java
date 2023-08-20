@@ -13,8 +13,8 @@ public class TokenScanner implements Iterator<String> {
   private String nextToken;
   private boolean hasNextToken;
 
-  private StringBuilder spaceBuilder = new StringBuilder();
-  private StringBuilder wordBuilder = new StringBuilder();
+  private StringBuilder invalidWordBuilder = new StringBuilder();
+  private StringBuilder validWordBuilder = new StringBuilder();
 
   /**
    * Crea un TokenScanner.
@@ -36,42 +36,38 @@ public class TokenScanner implements Iterator<String> {
     findNextToken();
   }
   private void findNextToken() throws IOException {
-
     int c;
-    while ((c = reader.read()) != -1) {
-      if (isWordCharacter(c)) {
-        if ((spaceBuilder.length()>0)){
-          nextToken=spaceBuilder.toString();
-          spaceBuilder.setLength(0);
+    while (( c = reader.read()) != -1) {
+      if (isWordCharacter(c)){
+        if (invalidWordBuilder.length()>0) {
+          nextToken = invalidWordBuilder.toString();
+          invalidWordBuilder.setLength(0);
           hasNextToken = true;
-          wordBuilder.append((char) c);
+          validWordBuilder.append((char) c);
           return;
         }else{
-          wordBuilder.append((char) c);
+          validWordBuilder.append((char) c);
         }
-      }
-      else if (!isWordCharacter(c)) {
-        if (wordBuilder.length()>0){
-          nextToken=wordBuilder.toString();
-          wordBuilder.setLength(0);
+      }else {
+        if (validWordBuilder.length()>0){
+          nextToken=validWordBuilder.toString();
+          validWordBuilder.setLength(0);
           hasNextToken = true;
-          spaceBuilder.append((char) c);
+          invalidWordBuilder.append((char) c);
           return;
         }else{
-          spaceBuilder.append((char) c);
+          invalidWordBuilder.append((char) c);
         }
       }
-
     }
-
-    if (wordBuilder.length() > 0) {
-      nextToken = wordBuilder.toString();
-      wordBuilder.setLength(0);
+    if (validWordBuilder.length() > 0) {
+      nextToken = validWordBuilder.toString();
+      validWordBuilder.setLength(0);
       hasNextToken = true;
-    } else if (spaceBuilder.length() > 0){
-      nextToken =spaceBuilder.toString();
-      spaceBuilder.setLength(0);
-      hasNextToken = true;
+    } else if (invalidWordBuilder.length() > 0){
+      nextToken=invalidWordBuilder.toString();
+      invalidWordBuilder.setLength(0);
+      hasNextToken=true;
     }else{
       hasNextToken = false;
     }
