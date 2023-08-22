@@ -1,12 +1,14 @@
 package edu.isistan.spellchecker.corrector.impl;
 
-import java.util.Hashtable;
-import java.util.Set;
-
 import edu.isistan.spellchecker.corrector.Corrector;
 import edu.isistan.spellchecker.tokenizer.TokenScanner;
 
-import java.io.*;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.IOException;
+import java.io.Reader;
+import java.util.Hashtable;
+import java.util.Set;
 import java.util.TreeSet;
 
 /**
@@ -15,10 +17,10 @@ import java.util.TreeSet;
  */
 public class FileCorrector extends Corrector {
 
-	private Hashtable<String,String> correctionMap = new Hashtable<String,String>();
+	private Hashtable<String,Set<String>> correctionMap = new Hashtable<String,Set<String>>();
 
 	/** Clase especial que se utiliza al tener 
-	 * algún error de formato en el archivo de entrada.
+	 * algï¿½n error de formato en el archivo de entrada.
 	 */
 	public static class FormatException extends Exception {
 		public FormatException(String msg) {
@@ -26,14 +28,13 @@ public class FileCorrector extends Corrector {
 		}
 	}
 
-
 	/**
 	 * Constructor del FileReader
 	 *
-	 * Utilice un BufferedReader para leer el archivo de definición
+	 * Utilice un BufferedReader para leer el archivo de definiciï¿½n
 	 *
 	 * <p> 
-	 * Cada línea del archivo del diccionario tiene el siguiente formato: 
+	 * Cada lï¿½nea del archivo del diccionario tiene el siguiente formato: 
 	 * misspelled_word,corrected_version
 	 *
 	 * <p>
@@ -47,7 +48,7 @@ public class FileCorrector extends Corrector {
 	 * ther,there<br>
 	 * </pre>
 	 * <p>
-	 * Estas líneas no son case-insensitive, por lo que todas deberían generar el mismo efecto:<br>
+	 * Estas lï¿½neas no son case-insensitive, por lo que todas deberï¿½an generar el mismo efecto:<br>
 	 * <pre>
 	 * baloon,balloon<br>
 	 * Baloon,balloon<br>
@@ -67,7 +68,7 @@ public class FileCorrector extends Corrector {
 	 * Los espacios son permitidos dentro de las sugerencias. 
 	 *
 	 * <p>
-	 * Debería arrojar <code>FileCorrector.FormatException</code> si se encuentra algún
+	 * Deberï¿½a arrojar <code>FileCorrector.FormatException</code> si se encuentra algï¿½n
 	 * error de formato:<br>
 	 * <pre>
 	 * ,correct<br>
@@ -87,13 +88,36 @@ public class FileCorrector extends Corrector {
 			throw new IllegalArgumentException();
 		else {
 			TokenScanner token = new TokenScanner(r);
+			String nextToken;
+			String value;
 			while (token.hasNext()){
-				System.out.println(token.next());
-				correctionMap.put(token.next(),token.next());
+				nextToken = token.next();
+				while (!token.isWord(nextToken)){
+					nextToken = token.next();
+				}
+				value = token.next();
+				while (!token.isWord(value)){
+					value = token.next();
+				}
+				if (token.isWord(nextToken)){
+						if (correctionMap.containsKey(nextToken.toLowerCase())){
+							while (!token.isWord(value)){
+								value = token.next();
+							}
+							correctionMap.get(nextToken).add(value);
+				
+					} else {
+						Set<String> newSet = new TreeSet<String>();
+						while (!token.isWord(value)){
+								value = token.next();
+							}
+						newSet.add(value);
+						correctionMap.put(nextToken.toLowerCase(), newSet);
+						}
+					}
 				}
 			}
 		}
-
 
 	/** Construye el Filereader.
 	 *
@@ -115,20 +139,31 @@ public class FileCorrector extends Corrector {
 
 	/**
 	 * Retorna una lista de correcciones para una palabra dada.
-	 * Si la palabra mal escrita no está en el diccionario el set es vacio.
+	 * Si la palabra mal escrita no estï¿½ en el diccionario el set es vacio.
 	 * <p>
 	 * Ver superclase.
 	 *
 	 * @param wrong 
-	 * @return retorna un conjunto (potencialmente vacío) de sugerencias.
-	 * @throws IllegalArgumentException si la entrada no es una palabra válida 
+	 * @return retorna un conjunto (potencialmente vacï¿½o) de sugerencias.
+	 * @throws IllegalArgumentException si la entrada no es una palabra vï¿½lida 
 	 */
+
 	public Set<String> getCorrections(String wrong) {
+		
 		Set<String> corrections = new TreeSet<String>();
 		if (wrong != null){
-			corrections.add(correctionMap.get(wrong));
-			return corrections;
+			try {
+				corrections = correctionMap.get(wrong.toLowerCase());
+				return corrections;
+
+			} catch (NullPointerException e) {
+				System.out.println("nothing");
+				
+			} finally {
+				return matchCase(wrong, corrections);
+			} 
+		} else {	
+			throw new IllegalArgumentException();
 		}
-		throw new IllegalArgumentException();
 	}
 }
